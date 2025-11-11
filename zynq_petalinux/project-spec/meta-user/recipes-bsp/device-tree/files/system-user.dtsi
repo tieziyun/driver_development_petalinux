@@ -1,3 +1,40 @@
-/include/ "system-conf.dtsi"
 / {
+    /* ------------------------------------------------------------- */
+    /*  USB ULPI PHY + Host mode configuration                       */
+    /* ------------------------------------------------------------- */
+    usb_phy0: usb_phy@0 {
+        compatible = "ulpi-phy";
+        #phy-cells = <0>;
+        reg = <0xe0002000 0x1000>;
+        view-port = <0x0170>;
+        drv-vbus;
+    };
 };
+
+/* ------------------------------------------------------------- */
+/*  Peripheral overrides (Ethernet disable, QSPI tweak, VDMA fix)*/
+/* ------------------------------------------------------------- */
+&usb0 {
+    dr_mode = "host";
+    usb-phy = <&usb_phy0>;
+};
+
+&sdhci0 {
+    status = "okay";
+    disable-wp;    /* safe if your board's WP pin is unused or miswired */
+    broken-cd;     /* card-detect workaround for some boards */
+};
+
+/* --- Disable Ethernet to avoid PHY attach timeout --- */
+&gem0 {
+    status = "disabled";
+};
+
+/* --- Keep QSPI controller but disable flash device probe --- */
+&qspi {
+    status = "okay";
+    flash@0 {
+        status = "disabled";
+    };
+};
+
